@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>react-watch-keys</title>
+  </head>
+
+  <body>
+    <script src="./node_modules/react/dist/react.js"></script>
+    <script src="./node_modules/react-dom/dist/react-dom.js"></script>
+    <script src="./node_modules/babel-core/browser.js"></script>
+    <script src="./index.js"></script>
+
+    <script type="text/babel">
+      var RawTone = React.createClass({
+        getDefaultProps: function() {
+          return {
+            frequency: 440
+          };
+        },
+
+        componentDidMount: function() {
+          this.audioContext = new AudioContext();
+          this.oscillator = this.audioContext.createOscillator();
+          this.oscillator.connect(this.audioContext.destination);
+          this.oscillator.frequency.value = this.props.frequency;
+          this.oscillator.start();
+        },
+
+        componentWillUnmount: function() {
+          this.oscillator.stop();
+          this.audioContext.close();
+        },
+
+        componentDidUpdate: function() {
+          this.oscillator.frequency.value = this.props.frequency;
+        },
+
+        render: function() {
+          return null;
+        }
+      });
+
+      var Tone = React.createClass({
+        statics: {
+          getFrequency: function(step) {
+            return 440 * Math.pow(2, step / 12);
+          }
+        },
+
+        getDefaultProps: function() {
+          return {
+            frequency: 0,
+            disabled: false
+          };
+        },
+
+        render: function() {
+          return (
+            <span style={{
+              opacity: this.props.disabled ? 0.33 : null
+            }}>
+              {this.props.children}
+              {this.props.disabled ? null : <RawTone frequency={this.props.frequency} />}
+            </span>
+          );
+        }
+      });
+
+      var Example = reactWatchKeys({
+        '16': 'shift',
+        '17': 'ctrl',
+        '18': 'alt',
+        '81': 'q',
+        '87': 'w',
+        '69': 'e',
+        '82': 'r',
+        '84': 't',
+        '89': 'y',
+        '85': 'u',
+        '73': 'i',
+        '79': 'o',
+        '80': 'p',
+        '219': 'leftBracket',
+        '221': 'rightBracket',
+        '220': 'backslash'
+      }, null, true)(React.createClass({
+        displayName: 'Example',
+
+        render: function() {
+          var bend = 0;
+
+          if (this.props.heldKeys.shift) {
+            bend += 1;
+          }
+
+          if (this.props.heldKeys.ctrl) {
+            bend += 2;
+          }
+
+          if (this.props.heldKeys.alt) {
+            bend *= -1;
+          }
+
+          return (
+            <div style={{
+              textAlign: 'center'
+            }}>
+              <p>Here’s a dumb little demo that watches keyboard state.</p>
+              <p>Not responsible for blown speakers.</p>
+              <p style={{
+                fontSize: '2em'
+              }}>
+                <Tone frequency={Tone.getFrequency(-9 + bend)} disabled={!this.props.heldKeys.q}>Q</Tone>
+                <Tone frequency={Tone.getFrequency(-8 + bend)} disabled={!this.props.heldKeys.w}>W</Tone>
+                <Tone frequency={Tone.getFrequency(-7 + bend)} disabled={!this.props.heldKeys.e}>E</Tone>
+                <Tone frequency={Tone.getFrequency(-6 + bend)} disabled={!this.props.heldKeys.r}>R</Tone>
+                <Tone frequency={Tone.getFrequency(-5 + bend)} disabled={!this.props.heldKeys.t}>T</Tone>
+                <Tone frequency={Tone.getFrequency(-4 + bend)} disabled={!this.props.heldKeys.y}>Y</Tone>
+                <Tone frequency={Tone.getFrequency(-3 + bend)} disabled={!this.props.heldKeys.u}>U</Tone>
+                <Tone frequency={Tone.getFrequency(-2 + bend)} disabled={!this.props.heldKeys.i}>I</Tone>
+                <Tone frequency={Tone.getFrequency(-1 + bend)} disabled={!this.props.heldKeys.o}>O</Tone>
+                <Tone frequency={Tone.getFrequency(0 + bend)} disabled={!this.props.heldKeys.p}>P</Tone>
+                <Tone frequency={Tone.getFrequency(1 + bend)} disabled={!this.props.heldKeys.leftBracket}>[</Tone>
+                <Tone frequency={Tone.getFrequency(2 + bend)} disabled={!this.props.heldKeys.rightBracket}>]</Tone>
+                <Tone frequency={Tone.getFrequency(3 + bend)} disabled={!this.props.heldKeys.backslash}>\</Tone>
+              </p>
+              <p>Bend (with shift, control, alt): {bend}</p>
+            </div>
+          );
+        }
+      }));
+
+      var container = document.createElement('div');
+      document.body.appendChild(container);
+      ReactDOM.render(<Example />, container);
+    </script>
+  </body>
+</html>
